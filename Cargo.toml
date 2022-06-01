@@ -5,9 +5,11 @@ authors = ["Sylvan <sylvan.j.morris@gmail.com>"]
 edition = "2021"
 
 [lib]
+# This path is the standard, and since we haven't set a name, it defaults to package.main
 path = "src/lib.rs"
 
 [[bin]]
+# This is an array, so we can have multiple binaries
 path = "src/main.rs"
 name = "zero2prod"
 

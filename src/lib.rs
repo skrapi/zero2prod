@@ -1,5 +1,6 @@
 use actix_web::{get, App, HttpResponse, HttpServer, Responder};
 
+/// Check that the service is still up
 #[get("/health_check")]
 async fn health_check() -> impl Responder {
     HttpResponse::Ok()
