@@ -1,5 +1,5 @@
-use actix_web::{get, App, HttpResponse, HttpServer, Responder};
 use actix_web::dev::Server;
+use actix_web::{get, App, HttpResponse, HttpServer, Responder};
 use std::net::TcpListener;
 
 /// Check that the service is still up
