@@ -1,7 +1,7 @@
 [package]
 name = "zero2prod"
 version = "0.1.0"
-authors = ["Sylvan <sylvan.j.morris@gmail.com>"]
+authors = ["Sylvan <sylvan@hey.com>"]
 edition = "2021"
 
 [lib]
@@ -15,22 +15,24 @@ name = "zero2prod"
 
 [dependencies]
 actix-web = "4"
-tokio = { version = "1", features = ["macros", "rt-multi-thread"]}
-serde = { version = "1", features = ["derive"]}
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+serde = { version = "1", features = ["derive"] }
+config = "0.11"
+uuid = { version = "0.8.1", features = ["v4"] }
+chrono = "0.4.15"
 
 [dependencies.sqlx]
 version = "0.5.7"
 default-features = false
 features = [
-# Use actix runtime and rustls as TLS backend
+  # Use actix runtime and rustls as TLS backend
   "runtime-actix-rustls",
   "macros",
   "postgres",
   "uuid",
   "chrono",
-  "migrate"
+  "migrate",
 ]
 
 [dev-dependencies]
 reqwest = "0.11"
-
