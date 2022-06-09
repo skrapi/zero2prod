@@ -2,6 +2,7 @@ use actix_web::{post, web, HttpResponse};
 use sqlx::PgPool;
 
 use chrono::Utc;
+use tracing::Instrument;
 use uuid::Uuid;
 
 #[derive(serde::Deserialize)]
@@ -14,16 +15,16 @@ struct SubscribeForm {
 #[post("/subscriptions")]
 async fn subscribe(form: web::Form<SubscribeForm>, db_pool: web::Data<PgPool>) -> HttpResponse {
     let request_id = Uuid::new_v4();
-    log::info!(
-        "request_id {} - Adding a new subscriber: '{}' '{}'",
-        request_id,
-        form.email,
-        form.name
-    );
-    log::info!(
-        "request_id {} - Saving new subscriber details in the database.",
-        request_id
-    );
+
+    // % tells tracing to use `Display` implementation in logging
+    let request_span = tracing::info_span!("Adding a new subscriber.", %request_id, subscriber_email = %form.email, subscriber_name= %form.name);
+    let _request_span_guard = request_span.enter();
+
+    // We do not call `.enter` on query_span!
+    // `.instrument` takes care of it at the right moments
+    // in the quirey future lifetime
+    let query_span = tracing::info_span!("Saving new subscriber details in the database.");
+
     match sqlx::query!(
         r#"INSERT INTO subscriptions (id, email, name, subscribed_at) VALUES ($1, $2, $3, $4)"#,
         Uuid::new_v4(),
@@ -34,21 +35,14 @@ async fn subscribe(form: web::Form<SubscribeForm>, db_pool: web::Data<PgPool>) -
     // We use `get_ref` to get an immutable reference to the `PgPool`
     // wrapped by `web::Data`.
     .execute(db_pool.get_ref())
+    .instrument(query_span)
     .await
     {
-        Ok(_) => {
-            log::info!(
-                "request_id {} - New subscriber details have been saved.",
-                request_id
-            );
-            HttpResponse::Ok().finish()
-        }
+        Ok(_) => HttpResponse::Ok().finish(),
         Err(e) => {
-            log::error!(
-                "request_id {} - Failed to execute query: {:?}",
-                request_id,
-                e
-            );
+            // This error log falls outside of the `query_span`
+            // We will rectify that later
+            tracing::error!("Failed to execute query: {:?}", e);
             HttpResponse::InternalServerError().finish()
         }
     }
