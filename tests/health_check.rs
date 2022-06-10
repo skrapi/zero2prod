@@ -1,9 +1,19 @@
 //! tests/health_check.rs
+use once_cell::sync::Lazy;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
 use uuid::Uuid;
 
-use zero2prod::configuration::{get_configuration, DatabaseSettings};
+static TRACING: Lazy<()> = Lazy::new(|| {
+    let subscriber = get_log_subscriber("test".into(), "debug".into());
+    init_subscriber(subscriber);
+});
+
+use zero2prod::{
+    configuration::{get_configuration, DatabaseSettings},
+    startup::run,
+    telemetry::{get_log_subscriber, init_subscriber},
+};
 
 pub struct TestApp {
     pub address: String,
@@ -12,6 +22,9 @@ pub struct TestApp {
 
 /// Launch app at localhost:XXXX and return it
 async fn spawn_app() -> TestApp {
+    // This will only run TRACING's closure once
+    Lazy::force(&TRACING);
+
     // port 0 tells the OS to scan for an available port
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port.");
     let port = listener.local_addr().unwrap().port();
@@ -22,8 +35,7 @@ async fn spawn_app() -> TestApp {
 
     let connection_pool = configure_database(&configuration.database).await;
 
-    let server = zero2prod::startup::run(listener, connection_pool.clone())
-        .expect("Failed to bind address.");
+    let server = run(listener, connection_pool.clone()).expect("Failed to bind address.");
     // spawn a new thread to run the server
     let _ = tokio::spawn(server);
 
