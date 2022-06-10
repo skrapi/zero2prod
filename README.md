@@ -9,3 +9,8 @@ Run and follow the instructions to install psql and sqlx-cli.
 ```sh
 ./scripts/init_db.sh
 ```
+
+## Generate sqlx-data.json
+```sh
+cargo sqlx prepare -- --lib
+```
