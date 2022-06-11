@@ -5,7 +5,7 @@
 
 ## Testing
 
-Run and follow the instructions to install psql and sqlx-cli.
+Run and follow the instructions to install `psql` and `sqlx-cli`.
 ```sh
 ./scripts/init_db.sh
 ```
@@ -13,4 +13,10 @@ Run and follow the instructions to install psql and sqlx-cli.
 ## Generate sqlx-data.json
 ```sh
 cargo sqlx prepare -- --lib
+```
+
+## Build Docker image
+
+```sh
+docker build --tag zero2prod --file Dockerfile .
 ```
